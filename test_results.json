@@ -1,0 +1,202 @@
+[
+  {
+    "id": "TC-01",
+    "module": "Authentication",
+    "description": "User Registration with valid credentials",
+    "inputs": "username=tester_1794897651, email=tester_1794897651@testdomain.com, password=SecurePassword123!",
+    "expected": "HTTP 201 Created with JWT tokens",
+    "actual": "HTTP 201, User ID: 2",
+    "status": "PASS",
+    "time_ms": 880.04
+  },
+  {
+    "id": "TC-02",
+    "module": "Authentication",
+    "description": "User Registration password mismatch validation",
+    "inputs": "password != confirm_password",
+    "expected": "HTTP 400 Bad Request with confirm_password error",
+    "actual": "HTTP 400, Error: ['Passwords do not match.']",
+    "status": "PASS",
+    "time_ms": 12.49
+  },
+  {
+    "id": "TC-03",
+    "module": "Authentication",
+    "description": "User Registration duplicate email rejection",
+    "inputs": "email=tester_1794897651@testdomain.com (already registered)",
+    "expected": "HTTP 400 with duplicate email error message",
+    "actual": "HTTP 400, Error: ['user with this email already exists.']",
+    "status": "PASS",
+    "time_ms": 6.67
+  },
+  {
+    "id": "TC-04",
+    "module": "Authentication",
+    "description": "User Login & JWT access/refresh token issue",
+    "inputs": "username=tester_1794897651, password=SecurePassword123!",
+    "expected": "HTTP 200 OK with access and refresh tokens",
+    "actual": "HTTP 200, Token issued",
+    "status": "PASS",
+    "time_ms": 614.15
+  },
+  {
+    "id": "TC-05",
+    "module": "Authentication",
+    "description": "User Login failure with incorrect password",
+    "inputs": "username=tester_1794897651, password=IncorrectPassword999!",
+    "expected": "HTTP 401 Unauthorized",
+    "actual": "HTTP 401, Detail: No active account found with the given credentials",
+    "status": "PASS",
+    "time_ms": 629.46
+  },
+  {
+    "id": "TC-06",
+    "module": "Categories",
+    "description": "Automatic default category provisioning on signup",
+    "inputs": "GET /api/categories/",
+    "expected": "HTTP 200 with default categories provisioned",
+    "actual": "HTTP 200, 10 categories provisioned",
+    "status": "PASS",
+    "time_ms": 19.06
+  },
+  {
+    "id": "TC-07",
+    "module": "Categories",
+    "description": "Create custom user category with color and icon",
+    "inputs": "name='Gym & Fitness', color='#14B8A6'",
+    "expected": "HTTP 201 Created with custom category ID",
+    "actual": "HTTP 201, ID: 21",
+    "status": "PASS",
+    "time_ms": 58.24
+  },
+  {
+    "id": "TC-08",
+    "module": "Categories",
+    "description": "Enforce unique category names per user",
+    "inputs": "Duplicate name='Gym & Fitness'",
+    "expected": "HTTP 400 Bad Request (duplicate category name)",
+    "actual": "HTTP 400, Error: ['A category with this name already exists.']",
+    "status": "PASS",
+    "time_ms": 7.14
+  },
+  {
+    "id": "TC-09",
+    "module": "Expenses",
+    "description": "Create valid expense transaction record",
+    "inputs": "amount=1250.00, method=UPI, type=EXPENSE",
+    "expected": "HTTP 201 Created with Expense ID",
+    "actual": "HTTP 201, ID: 32",
+    "status": "PASS",
+    "time_ms": 22.16
+  },
+  {
+    "id": "TC-10",
+    "module": "Expenses",
+    "description": "Reject invalid expense with negative/zero amount",
+    "inputs": "amount=-50.00",
+    "expected": "HTTP 400 Bad Request with amount validation message",
+    "actual": "HTTP 400, Error: ['Amount must be greater than zero.']",
+    "status": "PASS",
+    "time_ms": 11.98
+  },
+  {
+    "id": "TC-11",
+    "module": "Expenses",
+    "description": "List and paginate expenses sorted by date desc",
+    "inputs": "page=1, page_size=10",
+    "expected": "HTTP 200 with paginated count and results array",
+    "actual": "HTTP 200, Count: 1, Page: 1",
+    "status": "PASS",
+    "time_ms": 7.21
+  },
+  {
+    "id": "TC-12",
+    "module": "Expenses",
+    "description": "Keyword search on description and category",
+    "inputs": "search='Gym'",
+    "expected": "HTTP 200 with matching transactions filtered by keyword",
+    "actual": "HTTP 200, Found 1 match(es)",
+    "status": "PASS",
+    "time_ms": 7.97
+  },
+  {
+    "id": "TC-13",
+    "module": "Expenses",
+    "description": "Filter expenses by payment method and date range",
+    "inputs": "payment_method=UPI, date_range=2026-11-01 to 2026-11-30",
+    "expected": "HTTP 200 with all results matching filters",
+    "actual": "HTTP 200, 1 filtered records",
+    "status": "PASS",
+    "time_ms": 7.83
+  },
+  {
+    "id": "TC-14",
+    "module": "Security",
+    "description": "IDOR defense: Block cross-user transaction access",
+    "inputs": "User B (user_b_1794897653) requesting User A's expense 32",
+    "expected": "HTTP 404 Not Found (IDOR access blocked)",
+    "actual": "HTTP 404 Access Denied",
+    "status": "PASS",
+    "time_ms": 819.42
+  },
+  {
+    "id": "TC-15",
+    "module": "Categories",
+    "description": "Protected deletion: Prevent deleting category with expenses",
+    "inputs": "DELETE /categories/21/ (has 1 active expense)",
+    "expected": "HTTP 400 Bad Request with reassignment requirement",
+    "actual": "HTTP 400, Error: Cannot delete category 'Gym & Fitness' because it has 1 linked transaction(s). Reassign them first or provide 'reassign_to' ID.",
+    "status": "PASS",
+    "time_ms": 6.41
+  },
+  {
+    "id": "TC-16",
+    "module": "Categories",
+    "description": "Category deletion with transaction reassignment",
+    "inputs": "DELETE category 21 with reassign_to=32",
+    "expected": "HTTP 204 No Content & expense reassigned to new category",
+    "actual": "HTTP 204, Expense category is now 32",
+    "status": "PASS",
+    "time_ms": 50.87
+  },
+  {
+    "id": "TC-17",
+    "module": "Budgets",
+    "description": "Set monthly budget limit and compute utilization",
+    "inputs": "category=32, limit=5000.00, month=11/2026",
+    "expected": "HTTP 201, Spent=1250, 25% utilization, Status=ON_TRACK",
+    "actual": "HTTP 201, Spent=1250.0, 25.0%, Status=ON_TRACK",
+    "status": "PASS",
+    "time_ms": 19.19
+  },
+  {
+    "id": "TC-18",
+    "module": "Budgets",
+    "description": "Budget alert trigger: Warning state at >=80% threshold",
+    "inputs": "Added 3000.00 expense (Total spent=4250, limit=5000)",
+    "expected": "Status='WARNING' when utilization reaches 85%",
+    "actual": "HTTP 200, Utilization=85.0%, Status=WARNING",
+    "status": "PASS",
+    "time_ms": 27.51
+  },
+  {
+    "id": "TC-19",
+    "module": "Dashboard",
+    "description": "Dashboard summary KPI and monthly totals calculation",
+    "inputs": "GET /api/reports/summary/?month=11&year=2026",
+    "expected": "HTTP 200 with balance, expenses, income, savings, and alerts",
+    "actual": "HTTP 200, Total Expenses=4250.0",
+    "status": "PASS",
+    "time_ms": 20.69
+  },
+  {
+    "id": "TC-20",
+    "module": "Export",
+    "description": "Download filtered expenses as CSV file",
+    "inputs": "GET /api/expenses/export/ with date filter",
+    "expected": "HTTP 200, Content-Type=text/csv, proper CSV headers and rows",
+    "actual": "HTTP 200, Rows returned: 3",
+    "status": "PASS",
+    "time_ms": 9.53
+  }
+]
